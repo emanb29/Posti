@@ -21,6 +21,22 @@ object Util {
         startActivity(ctx, instaPost, Bundle.EMPTY)
     }
 
+    fun cacheImageFromWebUri(ctx: Context, uri: Uri): File? {
+        when {
+            TODO("Match insta URLs") -> TODO("Download IG photo")
+            TODO("Match facebook URLs") -> TODO("Download facebook photo")
+            TODO("Match reddit URLs") -> TODO("Download reddit photo")
+            TODO("Match twitter URLs") -> TODO("Download twitter photo")
+            else ->
+                uri.lastPathSegment?.let{filename -> when {
+                    filename.endsWith("png") -> TODO()
+                    TODO() -> TODO()
+                    else -> null
+                }}
+
+        }
+    }
+
     fun cacheImageFromClip(ctx: Context, clip: ClipData?): Uri? {
         return clip?.itemCount?.let { count ->
             val item = clip.getItemAt(0)
@@ -39,23 +55,22 @@ object Util {
                 else -> null
             }?.normalizeScheme()?.let { uri -> // Convert the URI into something controlled by the application - a Uri for a temporary file
                 uri.scheme?.let { scheme ->
-                    when {
-                        scheme.contains("http") -> TODO("Download to temp file")
+                    when { // Generate a temp file
+                        scheme.contains("http") -> cacheImageFromWebUri(ctx, uri)
                         scheme.contentEquals(ContentResolver.SCHEME_CONTENT) ||
                                 scheme.contentEquals(ContentResolver.SCHEME_FILE) -> {
                             ctx.contentResolver.openInputStream(uri)?.let { inStr ->
                                 // copy local file to an application-controlled temporary file
-                                val file = File.createTempFile("postiLocalCopy", "").apply {
+                                File.createTempFile("postiLocalCopy", "").apply {
                                     writeBytes(inStr.readBytes())
                                     inStr.close()
                                 }
-                                FileProvider.getUriForFile(ctx, "me.ethanbell.posti.fileprovider", file)
                             }
 
 
                         }
                         else -> null
-                    }
+                    }?.let{FileProvider.getUriForFile(ctx, "me.ethanbell.posti.fileprovider", it)} // Make URI
                 }
             }
         }

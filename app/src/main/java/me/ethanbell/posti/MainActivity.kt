@@ -13,19 +13,11 @@ class MainActivity : AppCompatActivity() {
 
     val IMAGE_FROM_GALLERY_SELECTED = 1002;
 
-//    companion object {
-//        fun
-//    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
     }
 
-    fun onSelectFromGallery(v: View) {
-        val intent: Intent = Intent().setType("image/*").setAction(Intent.ACTION_GET_CONTENT)
-        startActivityForResult(Intent.createChooser(intent, "Select Photo"), IMAGE_FROM_GALLERY_SELECTED)
-    }
     fun onSelectFromClipboard(v: View) {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         Util.cacheImageFromClip(this, clipboard.primaryClip)?.let {
@@ -34,6 +26,10 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    fun onSelectFromGallery(v: View) {
+        val intent: Intent = Intent().setType("image/*").setAction(Intent.ACTION_GET_CONTENT)
+        startActivityForResult(Intent.createChooser(intent, "Select Photo"), IMAGE_FROM_GALLERY_SELECTED)
+    }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             IMAGE_FROM_GALLERY_SELECTED -> {

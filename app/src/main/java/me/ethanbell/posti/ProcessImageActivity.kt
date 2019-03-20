@@ -19,14 +19,15 @@ import java.lang.Math.max
 import kotlin.math.roundToInt
 
 class ProcessImageActivity: AppCompatActivity() {
-    lateinit var originalBitmap: Bitmap
+    private lateinit var originalBitmap: Bitmap
     lateinit var bitmap: Bitmap
     var squared = false
 //    val image = File.createTempFile("postiImage", "")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_process_image)
-        intent?.data?.let {
+        val uri = intent?.data ?: Util.cacheImageFromClip(this, intent?.clipData)
+        uri.let {
             bitmap = MediaStore.Images.Media.getBitmap(contentResolver, it)
             if (bitmap.height > 1080 && bitmap.width < bitmap.height) { // If the image is too tall
                 bitmap = Bitmap.createScaledBitmap(bitmap,
@@ -62,7 +63,7 @@ class ProcessImageActivity: AppCompatActivity() {
         imageView.setImageBitmap(bitmap)
     }
 
-    fun onPost(v: View) {
+    fun onPost(v: View): Unit {
         val image = File.createTempFile("postiImage", ".png")
         val os = image.outputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, os)

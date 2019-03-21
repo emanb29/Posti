@@ -29,7 +29,6 @@ object Util {
         }
         startActivity(ctx, intent, Bundle.EMPTY)
     }
-
     /**
      * Invoke Instagram's "post image" activity
      */
@@ -54,7 +53,7 @@ object Util {
                 }
             }()
                     ||
-                    {
+                    kotlin.runCatching {
                         // http MIME type is image*
                         val resp = runBlocking {
                             uri.toString().httpGet().allowRedirects(true).awaitByteArrayResponse()
@@ -63,7 +62,7 @@ object Util {
 
                         val contentType: String? = resp.header(Headers.CONTENT_TYPE).firstOrNull()
                         contentType?.startsWith("image", true) ?: false
-                    }()
+                    }.getOrDefault(false)
         }
         return (couldBe ?: false)
     }

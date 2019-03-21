@@ -1,6 +1,8 @@
 package me.ethanbell.posti
 
 import android.app.Activity
+import android.app.Notification
+import android.app.PendingIntent
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -16,6 +18,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+    }
+
+    fun onServiceToggle(v: View){
+        if (ClipboardMonitorService.isRunning) stopService(Intent(this, ClipboardMonitorService::class.java))
+        else startForegroundService(Intent(this, ClipboardMonitorService::class.java))
     }
 
     fun onSelectFromClipboard(v: View) {

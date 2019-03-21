@@ -8,10 +8,10 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "me.ethanbell.posti"
-        minSdkVersion 26
+        minSdkVersion 24
         targetSdkVersion 28
-        versionCode 10101
-        versionName "1.01.01"
+        versionCode 10200
+        versionName "1.02.00"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

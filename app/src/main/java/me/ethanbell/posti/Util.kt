@@ -33,9 +33,16 @@ object Util {
      * Invoke Instagram's "post image" activity
      */
     fun postImage(ctx: Context, uri: Uri) {
-        val instaPost = Intent(ACTION_SEND).setType("image/*").putExtra(Intent.EXTRA_STREAM, uri)
-            .setFlags(FLAG_GRANT_READ_URI_PERMISSION).setPackage("com.instagram.android")
-        startActivity(ctx, instaPost, Bundle.EMPTY)
+        if (runCatching{ctx.packageManager.getPackageInfo("com.instagram.android", 0)}.isSuccess) {
+            val instaPost = Intent(ACTION_SEND).setType("image/*").putExtra(Intent.EXTRA_STREAM, uri)
+                .setFlags(FLAG_GRANT_READ_URI_PERMISSION).setPackage("com.instagram.android")
+            startActivity(ctx, instaPost, Bundle.EMPTY)
+        } else {
+            //Instagram not installed, defer to generic image intent
+            val genericPost = Intent(ACTION_SEND).setType("image/*").putExtra(Intent.EXTRA_STREAM, uri)
+                .setFlags(FLAG_GRANT_READ_URI_PERMISSION)
+            startActivity(ctx, genericPost, Bundle.EMPTY)
+        }
     }
 
     /**

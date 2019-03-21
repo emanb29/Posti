@@ -7,6 +7,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -22,7 +23,11 @@ class MainActivity : AppCompatActivity() {
 
     fun onServiceToggle(v: View){
         if (ClipboardMonitorService.isRunning) stopService(Intent(this, ClipboardMonitorService::class.java))
-        else startForegroundService(Intent(this, ClipboardMonitorService::class.java))
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(Intent(this, ClipboardMonitorService::class.java))
+        } else {
+            startService(Intent(this, ClipboardMonitorService::class.java))
+        }
     }
 
     fun onSelectFromClipboard(v: View) {

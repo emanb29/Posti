@@ -12,13 +12,16 @@ import com.github.kittinunf.fuel.core.awaitResponse
 import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponse
 import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponseResult
 import com.github.kittinunf.fuel.httpDownload
+import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpHead
 import kotlinx.coroutines.runBlocking
 import java.io.File
 
-typealias VerifiedImageUri = Uri
 
 object Util {
+    /**
+     * Invoke the ProcessImageActivity
+     */
     fun prepImage(ctx: Context, uri: Uri) {
         val intent = Intent(ctx, ProcessImageActivity::class.java).apply {
             action = "me.ethanbell.posti.PROCESSIMG"
@@ -27,28 +30,34 @@ object Util {
         startActivity(ctx, intent, Bundle.EMPTY)
     }
 
+    /**
+     * Invoke Instagram's "post image" activity
+     */
     fun postImage(ctx: Context, uri: Uri) {
         val instaPost = Intent(ACTION_SEND).setType("image/*").putExtra(Intent.EXTRA_STREAM, uri)
             .setFlags(FLAG_GRANT_READ_URI_PERMISSION).setPackage("com.instagram.android")
         startActivity(ctx, instaPost, Bundle.EMPTY)
     }
 
+    /**
+     * Determine if a http(s) uri could be an image based off its extension and/or MIME type
+     */
     private fun couldBeImage(uri: Uri): Boolean {
         val couldBe: Boolean? = uri.lastPathSegment?.let { filename ->
             {
                 // url ends with image extension
-                setOf("png", "gif", "jpg", "jpeg", "bmp", "webp", "heic", "heif").map {
+                setOf("png", "gif", "jpg", "jpeg", "bmp", "webp", "heic", "heif").any {
                     filename.endsWith(
                         it,
                         true
                     )
-                }.reduce { l, r -> l || r }
+                }
             }()
                     ||
                     {
                         // http MIME type is image*
                         val resp = runBlocking {
-                            uri.toString().httpHead().awaitByteArrayResponse()
+                            uri.toString().httpGet().allowRedirects(true).awaitByteArrayResponse()
 
                         }.second
 
@@ -59,7 +68,10 @@ object Util {
         return (couldBe ?: false)
     }
 
-    private fun downloadVerifiedImage(uri: VerifiedImageUri): File {
+    /**
+     * Given a web Uri known to point to an image, download and return a local cached copy of that image
+     */
+    private fun downloadVerifiedImage(uri: Uri): File {
         lateinit var file: File
         runBlocking {
             uri.toString().httpDownload()
@@ -67,14 +79,21 @@ object Util {
                     File.createTempFile("postiDownload", "").apply { file = this }
                 }
                 .progress { _, _ -> }
+                .allowRedirects(true)
                 .awaitByteArrayResponse()
         }
         return file
     }
 
+    /**
+     * Given a uri known to be http or https, if it points to an image, return a locally cached copy. Otherwise, null.
+     */
     fun cacheImageFromWebUri(ctx: Context, uri: Uri): File? {
         return when {
-//            TODO("Match insta URLs") -> TODO("Download IG photo")
+            Instagram.isInstaLink(uri) && Instagram.shortCode(uri) != null ->
+                downloadVerifiedImage(
+                    Uri.parse("https://instagram.com/p/${Instagram.shortCode(uri)}/media/?size=l")
+                )
 //            TODO("Match facebook URLs") -> TODO("Download facebook photo")
 //            TODO("Match reddit URLs") -> TODO("Download reddit photo")
 //            TODO("Match twitter URLs") -> TODO("Download twitter photo")
@@ -84,6 +103,10 @@ object Util {
         }
     }
 
+    /**
+     * Given a ClipData, if the ClipData is an image or a URI referring to an image, return a Uri for a locally-cached
+     * copy of the image file. Otherwise null
+     */
     fun cacheImageFromClip(ctx: Context, clip: ClipData?): Uri? {
         return clip?.itemCount?.let { count ->
             val item = clip.getItemAt(0)

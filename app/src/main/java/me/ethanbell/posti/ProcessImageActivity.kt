@@ -24,7 +24,7 @@ class ProcessImageActivity : AppCompatActivity() {
     private lateinit var originalBitmap: Bitmap
     lateinit var bitmap: Bitmap
     var squared = false
-    //    val image = File.createTempFile("postiImage", "")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_process_image)

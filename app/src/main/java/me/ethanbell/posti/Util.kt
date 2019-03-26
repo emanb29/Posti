@@ -8,12 +8,9 @@ import android.os.Bundle
 import android.support.v4.content.ContextCompat.startActivity
 import android.support.v4.content.FileProvider
 import com.github.kittinunf.fuel.core.Headers
-import com.github.kittinunf.fuel.core.awaitResponse
 import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponse
-import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponseResult
 import com.github.kittinunf.fuel.httpDownload
 import com.github.kittinunf.fuel.httpGet
-import com.github.kittinunf.fuel.httpHead
 import kotlinx.coroutines.runBlocking
 import java.io.File
 
@@ -48,7 +45,7 @@ object Util {
     /**
      * Determine if a http(s) uri could be an image based off its extension and/or MIME type
      */
-    private fun couldBeImage(uri: Uri): Boolean {
+    private fun couldBeDirectImage(uri: Uri): Boolean {
         val couldBe: Boolean? = uri.lastPathSegment?.let { filename ->
             {
                 // url ends with image extension
@@ -103,7 +100,7 @@ object Util {
 //            TODO("Match facebook URLs") -> TODO("Download facebook photo")
 //            TODO("Match reddit URLs") -> TODO("Download reddit photo")
 //            TODO("Match twitter URLs") -> TODO("Download twitter photo")
-            couldBeImage(uri) -> downloadVerifiedImage(uri)
+            couldBeDirectImage(uri) -> downloadVerifiedImage(uri)
             else -> null
 
         }

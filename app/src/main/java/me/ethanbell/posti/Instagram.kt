@@ -8,9 +8,11 @@ object Instagram {
             setOf("instagr.am", "instagram.com").any { host.contains(it, true) }
         } ?: false
     }
+
     fun shortCode(uri: Uri): String? {
         val pathSegments: List<String> = uri.pathSegments
-        val codeIndex = pathSegments.indexOfFirst { it.contentEquals("p") } + 1
-        return pathSegments.getOrNull(codeIndex)
+        return if (pathSegments.any { it.contentEquals("p") })
+            (pathSegments.indexOfFirst { it.contentEquals("p") } + 1).let { pathSegments[it] }
+        else null
     }
 }

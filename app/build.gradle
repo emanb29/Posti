@@ -10,8 +10,8 @@ android {
         applicationId "me.ethanbell.posti"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 10200
-        versionName "1.02.00"
+        versionCode 10201
+        versionName "1.02.01"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

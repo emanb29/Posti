@@ -1,8 +1,7 @@
 package me.ethanbell.posti
 
 import android.content.*
-import android.content.Intent.ACTION_SEND
-import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+import android.content.Intent.*
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.content.ContextCompat.startActivity
@@ -23,14 +22,15 @@ object Util {
         val intent = Intent(ctx, ProcessImageActivity::class.java).apply {
             action = "me.ethanbell.posti.PROCESSIMG"
             data = uri
-        }
+        }.setFlags(FLAG_ACTIVITY_NEW_TASK)
         startActivity(ctx, intent, Bundle.EMPTY)
     }
+
     /**
      * Invoke Instagram's "post image" activity
      */
     fun postImage(ctx: Context, uri: Uri) {
-        if (runCatching{ctx.packageManager.getPackageInfo("com.instagram.android", 0)}.isSuccess) {
+        if (runCatching { ctx.packageManager.getPackageInfo("com.instagram.android", 0) }.isSuccess) {
             val instaPost = Intent(ACTION_SEND).setType("image/*").putExtra(Intent.EXTRA_STREAM, uri)
                 .setFlags(FLAG_GRANT_READ_URI_PERMISSION).setPackage("com.instagram.android")
             startActivity(ctx, instaPost, Bundle.EMPTY)
@@ -89,18 +89,16 @@ object Util {
     }
 
     /**
-     * Given a uri known to be http or https, if it points to an image, return a locally cached copy. Otherwise, null.
+     * Given a uri known to be http or https, if it points to an image-like object, return a uri to a direct image. Otherwise, null.
      */
-    fun cacheImageFromWebUri(ctx: Context, uri: Uri): File? {
+    fun getDirectImageUri(uri: Uri): Uri? {
         return when {
-            Instagram.isInstaLink(uri) && Instagram.shortCode(uri) != null ->
-                downloadVerifiedImage(
-                    Uri.parse("https://instagram.com/p/${Instagram.shortCode(uri)}/media/?size=l")
-                )
+            couldBeDirectImage(uri) -> uri
+            Instagram.isInstaImage(uri) ->
+                Uri.parse("https://instagram.com/p/${Instagram.shortCode(uri)}/media/?size=l")
+            Reddit.maybeRedditImage(uri) -> Reddit.getRedditImage(uri)
 //            TODO("Match facebook URLs") -> TODO("Download facebook photo")
-//            TODO("Match reddit URLs") -> TODO("Download reddit photo")
 //            TODO("Match twitter URLs") -> TODO("Download twitter photo")
-            couldBeDirectImage(uri) -> downloadVerifiedImage(uri)
             else -> null
 
         }
@@ -127,7 +125,7 @@ object Util {
                 // Convert the URI into something controlled by the application - a Uri for a temporary file
                 uri.scheme?.let { scheme ->
                     when { // Generate a temp file
-                        scheme.contains("http", true) -> cacheImageFromWebUri(ctx, uri)
+                        scheme.contains("http", true) -> getDirectImageUri(uri)?.let { downloadVerifiedImage(it) }
                         scheme.contentEquals(ContentResolver.SCHEME_CONTENT) ||
                                 scheme.contentEquals(ContentResolver.SCHEME_FILE) -> {
                             ctx.contentResolver.openInputStream(uri)?.let { inStr ->

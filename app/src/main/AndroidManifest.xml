@@ -26,7 +26,11 @@
                 <action android:name="android.intent.action.SEND"/>
                 <action android:name="me.ethanbell.posti.PROCESSIMG"/>
                 <category android:name="android.intent.category.DEFAULT"/>
+                <!--image objects from "share" actions-->
                 <data android:mimeType="image/*"/>
+                <!--image links from "share" actions-->
+                <data android:mimeType="text/plain"/>
+                <data android:mimeType="text/html"/>
             </intent-filter>
         </activity>
         <provider
@@ -39,6 +43,16 @@
                     android:resource="@xml/file_paths"/>
         </provider>
         <service android:name=".ClipboardMonitorService"/>
+        <!--Reddit API information-->
+        <meta-data
+                android:name="net.dean.jraw.android.REDDIT_USERNAME"
+                android:value="BeardedCrake"/>
+        <meta-data
+                android:name="net.dean.jraw.android.CLIENT_ID"
+                android:value="rRYJYyT91AkmAQ"/>
+        <meta-data
+                android:name="net.dean.jraw.android.REDIRECT_URL"
+                android:value="https://posti.ethanbell.me/"/>
     </application>
 
 </manifest>

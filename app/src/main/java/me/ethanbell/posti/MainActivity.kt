@@ -10,7 +10,14 @@ import android.net.Uri
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
+import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Reddit.setup(applicationContext)
         setContentView(R.layout.activity_main)
     }
 
@@ -32,8 +40,13 @@ class MainActivity : AppCompatActivity() {
 
     fun onSelectFromClipboard(v: View) {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        Util.cacheImageFromClip(this, clipboard.primaryClip)?.let {
-            Util.prepImage(this, it)
+        val toast = Toast.makeText(applicationContext, "Checking clipboard for a postable image", Toast.LENGTH_LONG)
+        toast.show()
+        GlobalScope.launch {
+            Util.cacheImageFromClip(applicationContext, clipboard.primaryClip)?.let {
+                toast.cancel()
+                Util.prepImage(applicationContext, it)
+            }
         }
     }
 

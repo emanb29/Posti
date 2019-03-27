@@ -14,6 +14,11 @@ import java.util.*
 object Reddit {
     private lateinit var accountHelper: AccountHelper
     private lateinit var tokenStore: SharedPreferencesTokenStore
+
+    /**
+     * Configure the JRAW Reddit API client
+     * This should be called once per lifecycle of the app (onCreate in MainActivity for now)
+     */
     fun setup(ctx: Context): Unit {
         // Get UserAgent and OAuth2 data from AndroidManifest.xml
         val provider = ManifestAppInfoProvider(ctx.applicationContext);
@@ -47,6 +52,9 @@ object Reddit {
         }
     }
 
+    /**
+     * Check if a URL could feasibly coorespond to a reddit-linked image by checking the domain and path
+     */
     fun maybeRedditImage(uri: Uri): Boolean {
         return (uri.host?.contains("reddit.com") ?: false
                 ||
@@ -54,6 +62,9 @@ object Reddit {
                 uri.pathSegments.any { "comments".contentEquals(it) }
     }
 
+    /**
+     * Synchronously get a reddit-linked image direct URL without stalling the calling (UI) thread
+     */
     fun getRedditImage(uri: Uri): Uri? {
         val s = runBlocking(Dispatchers.IO) {
             val a = getRedditImageAsync(uri)
@@ -62,6 +73,9 @@ object Reddit {
         return s
     }
 
+    /**
+     * Asynchronously get a reddit-linked image's direct URL
+     */
     suspend fun getRedditImageAsync(uri: Uri): Uri? {
         val id = (uri.pathSegments.indexOfFirst { "comments".contentEquals(it) } + 1).let { uri.pathSegments[it] }
         val post = GlobalScope.async {

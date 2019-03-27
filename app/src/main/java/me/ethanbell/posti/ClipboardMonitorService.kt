@@ -4,10 +4,8 @@ import android.app.*
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.IBinder
-import android.support.annotation.RequiresApi
 import android.widget.Toast
 
 class ClipboardMonitorService : Service() {
@@ -28,7 +26,7 @@ class ClipboardMonitorService : Service() {
     }
 
     override fun onCreate() {
-
+        // Find a handle to the notification manager and if applicable (Android O or later) create a NotificationChannel
         notifManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -41,6 +39,7 @@ class ClipboardMonitorService : Service() {
             notifManager.createNotificationChannel(channel)
         }
 
+        // Create a notification to indicate that the service is running in the foreground
         serviceNotification = (
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     Notification.Builder(this, channelId)
@@ -57,12 +56,15 @@ class ClipboardMonitorService : Service() {
             .setOnlyAlertOnce(true)
             .build()
 
+        // Start the service with a persistent foreground notification
         startForeground(notifId, serviceNotification)
 
+        // Get a handle to the clipboard service
         clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.addPrimaryClipChangedListener(listener)
-        isRunning = true
+        clipboard.addPrimaryClipChangedListener(onClipboardChanged)
 
+        // Mark the service as running and notify the user
+        isRunning = true
         Toast.makeText(this, "Posti Clipboard Service now running", Toast.LENGTH_SHORT).show()
 
     }
@@ -89,15 +91,20 @@ class ClipboardMonitorService : Service() {
 
     override fun onDestroy() {
         // The service is no longer used and is being destroyed
-        clipboard.removePrimaryClipChangedListener(listener)
+        clipboard.removePrimaryClipChangedListener(onClipboardChanged)
+        // if applicable, remove the notification channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notifManager.deleteNotificationChannel(channelId)
         }
+        // Mark the service as stopped and tell the user
         isRunning = false
         Toast.makeText(this, "Posti Clipboard Service terminated", Toast.LENGTH_SHORT).show()
     }
 
-    private val listener: () -> Unit = {
+    /**
+     * Listener to be called when the contents of the clipboard change. Eagerly cache the clipped image
+     */
+    private val onClipboardChanged: () -> Unit = {
         Util.cacheImageFromClip(this, clipboard.primaryClip)?.let { uri ->
             Toast.makeText(applicationContext, "Click Posti Notification to Share", Toast.LENGTH_SHORT).show()
             notifManager.notify(notifId, serviceNotification.apply {

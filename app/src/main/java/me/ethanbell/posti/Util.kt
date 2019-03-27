@@ -94,8 +94,7 @@ object Util {
     fun getDirectImageUri(uri: Uri): Uri? {
         return when {
             couldBeDirectImage(uri) -> uri
-            Instagram.isInstaImage(uri) ->
-                Uri.parse("https://instagram.com/p/${Instagram.shortCode(uri)}/media/?size=l")
+            Instagram.isInstaImage(uri) -> Instagram.directImageUri(Instagram.shortCode(uri))
             Reddit.maybeRedditImage(uri) -> Reddit.getRedditImage(uri)
 //            TODO("Match facebook URLs") -> TODO("Download facebook photo")
 //            TODO("Match twitter URLs") -> TODO("Download twitter photo")

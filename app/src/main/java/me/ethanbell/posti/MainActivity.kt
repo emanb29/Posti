@@ -11,6 +11,8 @@ import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
@@ -18,6 +20,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,6 +32,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Reddit.setup(applicationContext)
         setContentView(R.layout.activity_main)
+        setSupportActionBar(toolbar)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId) {
+            R.id.action_ossl -> {
+                OssLicensesMenuActivity.setActivityTitle("Open Source Licenses")
+                startActivity(Intent(this, OssLicensesMenuActivity::class.java))
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     fun onServiceToggle(v: View){

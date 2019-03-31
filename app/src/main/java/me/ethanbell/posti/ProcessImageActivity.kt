@@ -1,5 +1,7 @@
 package me.ethanbell.posti
 
+import android.Manifest
+import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
@@ -9,15 +11,21 @@ import android.media.ExifInterface
 import android.media.Image
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
-import android.support.v4.content.FileProvider
-import android.support.v7.app.AppCompatActivity
+import androidx.core.content.FileProvider
+import androidx.appcompat.app.AppCompatActivity
 import android.view.View
+import android.widget.Toast
+import androidx.fragment.app.FragmentActivity
+import com.github.florent37.runtimepermission.kotlin.askPermission
 import kotlinx.android.synthetic.main.activity_process_image.*
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Math.abs
 import java.lang.Math.max
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.math.roundToInt
 
 class ProcessImageActivity : AppCompatActivity() {
@@ -94,5 +102,43 @@ class ProcessImageActivity : AppCompatActivity() {
             this,
             FileProvider.getUriForFile(this, "me.ethanbell.posti.fileprovider", image)
         )
+    }
+
+    fun onSave(v: View): Unit {
+        askPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE) {
+            kotlin.runCatching {
+                val savedImage = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                    "Posti/Posti-IMG_${Util.TimestampFormat.format(Calendar.getInstance().time)}.png"
+                )
+                savedImage.parentFile.mkdirs()
+                if (!savedImage.exists()) savedImage.createNewFile()
+
+
+                val os = FileOutputStream(savedImage)
+                if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, os)) throw FileSystemException(
+                    savedImage,
+                    null,
+                    "Unable to write image file for unknown reason"
+                )
+                os.close()
+
+                contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentValues().apply {
+                    put(MediaStore.Images.Media.DATE_ADDED, savedImage.lastModified())
+                    put(MediaStore.Images.Media.DATE_TAKEN, savedImage.lastModified())
+                    put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                    put(MediaStore.Images.Media.ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+                    put(MediaStore.Images.Media.DESCRIPTION, "Posti Image")
+                    put(MediaStore.Images.Media.TITLE, savedImage.nameWithoutExtension)
+                    put(MediaStore.Images.Media.DATA, savedImage.absolutePath)
+                })
+            }.onSuccess {
+                Toast.makeText(this, "Successfully saved image to gallery", Toast.LENGTH_SHORT).show()
+            }.onFailure {
+                Toast.makeText(this, "Unable to save image - Unknown error", Toast.LENGTH_SHORT).show()
+            }
+        }.onDeclined {
+            Toast.makeText(this, "Insufficient privileges to save image", Toast.LENGTH_SHORT).show()
+        }
     }
 }

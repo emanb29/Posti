@@ -1,20 +1,33 @@
 package me.ethanbell.posti
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.*
 import android.content.Intent.*
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.content.ContextCompat.startActivity
-import android.support.v4.content.FileProvider
+import android.os.PersistableBundle
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
+import androidx.core.content.FileProvider
+import androidx.appcompat.app.AppCompatActivity
 import com.github.kittinunf.fuel.core.Headers
 import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponse
 import com.github.kittinunf.fuel.httpDownload
 import com.github.kittinunf.fuel.httpGet
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.text.SimpleDateFormat
+import kotlin.random.Random
 
 
 object Util {
+    @SuppressLint("SimpleDateFormat") // I am intentionally manually setting a pattern which may not be locale-familiar
+    val TimestampFormat = SimpleDateFormat("yyyyMMdd-HHmmss")
+
     /**
      * Invoke the ProcessImageActivity
      */
